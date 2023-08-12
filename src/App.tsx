@@ -1,53 +1,23 @@
-import { useEffect, useState } from 'react';
+import {useState } from 'react';
 
-import apiClient, {CanceledError} from "./services/api-client";
 
 import ProductList from './components/ProductList';
+import userServices, { User } from './services/user-services';
+import useUsers from './hook/useUsers';
 
-interface User {
-  id: number,
-  name: string,
-}
 
-const App = () => {
+const App = () =>{
 const [category, setCategory] = useState('')
 
-
-// feacting data
-const [users, setUsers] =useState <User []> ([]);
-const [error, SetError] = useState('');
-const[isLoading, setLoading ] = useState(false);
-
-useEffect(() => {
-  const controller = new AbortController();
-  setLoading(true);
-  
-apiClient
-.get<User[]> ('/users')
-
-.then((res) => {
-   setUsers(res.data);
-   setLoading(false);
-  })
-  
-
-.catch((err) =>{ 
-  if (err instanceof CanceledError) return;
-SetError(err.message)
-setLoading(false)
-});
-
-return () => controller.abort();
-}, [])
+const{users, error, isLoading, setUsers, SetError } = useUsers();
 
 
 const deleteUser =(user: User) => {
 const orginalUser =[...users];
 
-   setUsers(users.filter(u => u.id !== user.id));
-   apiClient
-   .delete('/users/' + user.id)
-   .catch(err => {
+   setUsers(users.filter((u: { id: number; }) => u.id !== user.id));
+   
+   userServices.deleteUser(user.id).catch(err => {
     SetError(err.message);
     setUsers(orginalUser);
    })
@@ -58,8 +28,8 @@ const addUser =() => {
   const newUser = {id: 0, name:'Emma'}
   setUsers([ newUser, ...users, ]);
   
-  apiClient
-  .post('/users', newUser)
+  userServices.createUser(newUser)  
+
 .then(({data: savedUser}) => setUsers([savedUser, ...users]))
 .catch(err => {
   SetError(err.message);
@@ -72,8 +42,7 @@ const updateUser =(user: User) => {
   const updatedUser = {...user, name:user.name + '!'};
   setUsers(users.map(u => u.id ? updatedUser : u));
 
-  apiClient
-  .patch('/users/' + user.id, updateUser);
+  
    
 }
 
@@ -109,4 +78,7 @@ const updateUser =(user: User) => {
 }
 
 export default App;
+
+
+
 
