@@ -15,7 +15,7 @@ const{users, error, isLoading, setUsers, SetError } = useUsers();
 const deleteUser =(user: User) => {
 const orginalUser =[...users];
 
-   setUsers(users.filter((u: { id: number; }) => u.id !== user.id));
+   setUsers(users.filter((u) => u.id !== user.id));
    
    userServices.deleteUser(user.id).catch(err => {
     SetError(err.message);
